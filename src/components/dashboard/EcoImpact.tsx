@@ -44,15 +44,15 @@ const EcoImpact = ({ userId }: { userId: string }) => {
       <h3 className="text-2xl font-bold">Your Eco Impact</h3>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="p-6 bg-card border-border glow-green relative overflow-hidden">
+        <Card className="p-8 bg-card/80 backdrop-blur-xl border-border glow-green relative overflow-hidden rounded-2xl">
           <div className="absolute inset-0 bg-gradient-to-br from-secondary/20 to-transparent" />
           <div className="relative">
-            <div className="flex items-center gap-4 mb-6">
-              <div className="w-16 h-16 rounded-full bg-secondary/20 flex items-center justify-center">
-                <Leaf className="h-8 w-8 text-secondary" />
+            <div className="flex items-center gap-6 mb-6">
+              <div className="w-20 h-20 rounded-full bg-secondary/20 flex items-center justify-center glow-green">
+                <Leaf className="h-10 w-10 text-secondary" />
               </div>
               <div>
-                <div className="text-4xl font-bold text-foreground">{currentImpact}g</div>
+                <div className="text-5xl font-bold text-foreground">{currentImpact}g</div>
                 <div className="text-sm text-muted-foreground">CO₂ absorbed this month</div>
               </div>
             </div>
@@ -67,7 +67,7 @@ const EcoImpact = ({ userId }: { userId: string }) => {
           </div>
         </Card>
 
-        <Card className="p-6 bg-card border-border">
+        <Card className="p-6 bg-card/80 backdrop-blur-xl border-border rounded-2xl">
           <h4 className="text-lg font-semibold mb-4 text-foreground">Monthly CO₂ Absorption Trend</h4>
           <ResponsiveContainer width="100%" height={200}>
             <LineChart data={mockMonthlyData}>
@@ -93,7 +93,7 @@ const EcoImpact = ({ userId }: { userId: string }) => {
         </Card>
       </div>
 
-      <Card className="p-6 bg-card border-border glow-blue relative overflow-hidden">
+      <Card className="p-6 bg-card/80 backdrop-blur-xl border-border glow-blue relative overflow-hidden rounded-2xl">
         <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-secondary/10 to-primary/10 gradient-shimmer" />
         <div className="relative text-center">
           <h4 className="text-2xl font-bold text-foreground mb-2">Your Smart Choices Make a Difference!</h4>

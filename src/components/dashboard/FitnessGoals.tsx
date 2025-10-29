@@ -113,7 +113,7 @@ const FitnessGoals = ({ userId }: { userId: string }) => {
       </div>
 
       {isAdding && (
-        <Card className="p-6 bg-card border-border">
+        <Card className="p-6 bg-card/80 backdrop-blur-xl border-border rounded-2xl">
           <div className="space-y-4">
             <Input
               placeholder="Goal title"
@@ -139,7 +139,7 @@ const FitnessGoals = ({ userId }: { userId: string }) => {
         {goals.map((goal) => (
           <Card
             key={goal.id}
-            className={`p-6 bg-card border-border relative overflow-hidden cursor-pointer transition-all ${
+            className={`p-6 bg-card/80 backdrop-blur-xl border-border relative overflow-hidden cursor-pointer transition-all rounded-2xl ${
               goal.is_completed ? "opacity-75" : "glow-blue"
             }`}
             onClick={() => toggleGoalComplete(goal.id, goal.is_completed)}
@@ -147,7 +147,7 @@ const FitnessGoals = ({ userId }: { userId: string }) => {
             <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent" />
             <div className="relative">
               <div className="flex items-start justify-between mb-4">
-                <Target className="h-6 w-6 text-primary" />
+                <Target className="h-7 w-7 text-primary" />
                 {goal.is_completed && (
                   <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
                     <Check className="h-5 w-5 text-secondary-foreground" />

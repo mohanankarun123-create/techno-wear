@@ -74,56 +74,54 @@ const HealthMetricsGrid = ({ userId }: { userId: string }) => {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-      <Card className="p-6 bg-card border-border glow-blue relative overflow-hidden">
+      <Card className="p-6 bg-card/80 backdrop-blur-xl border-border glow-blue relative overflow-hidden rounded-2xl">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent" />
         <div className="relative">
           <div className="flex items-center justify-between mb-4">
-            <Heart className="h-6 w-6 text-primary" />
-            <div className="pulse-ring w-12 h-12 rounded-full border-2 border-primary" />
+            <Heart className="h-8 w-8 text-primary pulse-ring" />
           </div>
-          <div className="text-3xl font-bold text-foreground">
+          <div className="text-4xl font-bold text-foreground">
             {Math.round(metrics.heart_rate)}
           </div>
           <div className="text-sm text-muted-foreground">BPM</div>
         </div>
       </Card>
 
-      <Card className="p-6 bg-card border-border glow-green relative overflow-hidden">
+      <Card className="p-6 bg-card/80 backdrop-blur-xl border-border glow-green relative overflow-hidden rounded-2xl">
         <div className="absolute inset-0 bg-gradient-to-br from-secondary/10 to-transparent" />
         <div className="relative">
           <div className="flex items-center justify-between mb-4">
-            <Wind className="h-6 w-6 text-secondary" />
-            <div className="breathing-wave w-12 h-12 border-2 border-secondary rounded-lg" />
+            <Wind className="h-8 w-8 text-secondary breathing-wave" />
           </div>
-          <div className="text-3xl font-bold text-foreground">
+          <div className="text-4xl font-bold text-foreground">
             {Math.round(metrics.breathing_rate)}
           </div>
           <div className="text-sm text-muted-foreground">Breaths/min</div>
         </div>
       </Card>
 
-      <Card className="p-6 bg-card border-border relative overflow-hidden">
+      <Card className="p-6 bg-card/80 backdrop-blur-xl border-border relative overflow-hidden rounded-2xl">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent" />
         <div className="relative">
           <div className="flex items-center justify-between mb-4">
-            <Brain className="h-6 w-6 text-primary" />
-            <div className="w-full bg-muted rounded-full h-2">
+            <Brain className="h-8 w-8 text-primary" />
+            <div className="w-full bg-muted rounded-full h-2 ml-4">
               <div
                 className="bg-primary h-2 rounded-full transition-all duration-300"
                 style={{ width: `${metrics.stress_level}%` }}
               />
             </div>
           </div>
-          <div className="text-3xl font-bold text-foreground">{metrics.stress_level}%</div>
+          <div className="text-4xl font-bold text-foreground">{metrics.stress_level}%</div>
           <div className="text-sm text-muted-foreground">Stress Level</div>
         </div>
       </Card>
 
-      <Card className="p-6 bg-card border-border glow-blue relative overflow-hidden">
+      <Card className="p-6 bg-card/80 backdrop-blur-xl border-border glow-blue relative overflow-hidden rounded-2xl">
         <div className="absolute inset-0 bg-gradient-to-br from-secondary/10 to-transparent" />
         <div className="relative">
           <div className="flex items-center justify-between mb-4">
-            <Moon className="h-6 w-6 text-secondary" />
+            <Moon className="h-8 w-8 text-secondary" />
             <svg className="w-12 h-12" viewBox="0 0 36 36">
               <path
                 d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
@@ -140,16 +138,16 @@ const HealthMetricsGrid = ({ userId }: { userId: string }) => {
               />
             </svg>
           </div>
-          <div className="text-3xl font-bold text-foreground">{metrics.sleep_quality}</div>
+          <div className="text-4xl font-bold text-foreground">{metrics.sleep_quality}</div>
           <div className="text-sm text-muted-foreground">Sleep Quality</div>
         </div>
       </Card>
 
-      <Card className="p-6 bg-card border-border relative overflow-hidden">
+      <Card className="p-6 bg-card/80 backdrop-blur-xl border-border relative overflow-hidden rounded-2xl">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent" />
         <div className="relative">
           <div className="flex items-center justify-between mb-4">
-            <Activity className="h-6 w-6 text-primary" />
+            <Activity className="h-8 w-8 text-primary" />
             <svg className="w-12 h-12" viewBox="0 0 36 36">
               <path
                 d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
@@ -166,42 +164,42 @@ const HealthMetricsGrid = ({ userId }: { userId: string }) => {
               />
             </svg>
           </div>
-          <div className="text-3xl font-bold text-foreground">{metrics.recovery_score}</div>
+          <div className="text-4xl font-bold text-foreground">{metrics.recovery_score}</div>
           <div className="text-sm text-muted-foreground">Recovery Score</div>
         </div>
       </Card>
 
-      <Card className="p-6 bg-card border-border glow-green relative overflow-hidden">
+      <Card className="p-6 bg-card/80 backdrop-blur-xl border-border glow-green relative overflow-hidden rounded-2xl">
         <div className="absolute inset-0 bg-gradient-to-br from-secondary/10 to-transparent" />
         <div className="relative">
           <div className="flex items-center justify-between mb-4">
-            <Activity className="h-6 w-6 text-secondary" />
+            <Activity className="h-8 w-8 text-secondary" />
           </div>
-          <div className="text-3xl font-bold text-foreground capitalize">
+          <div className="text-4xl font-bold text-foreground capitalize">
             {metrics.posture_status.replace("_", " ")}
           </div>
           <div className="text-sm text-muted-foreground">Posture Status</div>
         </div>
       </Card>
 
-      <Card className="p-6 bg-card border-border relative overflow-hidden">
+      <Card className="p-6 bg-card/80 backdrop-blur-xl border-border relative overflow-hidden rounded-2xl">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent" />
         <div className="relative">
           <div className="flex items-center justify-between mb-4">
-            <Thermometer className="h-6 w-6 text-primary" />
+            <Thermometer className="h-8 w-8 text-primary" />
           </div>
-          <div className="text-3xl font-bold text-foreground">{metrics.body_temperature}°C</div>
+          <div className="text-4xl font-bold text-foreground">{metrics.body_temperature}°C</div>
           <div className="text-sm text-muted-foreground">Body Temperature</div>
         </div>
       </Card>
 
-      <Card className="p-6 bg-card border-border glow-blue relative overflow-hidden">
+      <Card className="p-6 bg-card/80 backdrop-blur-xl border-border glow-blue relative overflow-hidden rounded-2xl">
         <div className="absolute inset-0 bg-gradient-to-br from-secondary/10 to-transparent" />
         <div className="relative">
           <div className="flex items-center justify-between mb-4">
-            <Footprints className="h-6 w-6 text-secondary" />
+            <Footprints className="h-8 w-8 text-secondary" />
           </div>
-          <div className="text-3xl font-bold text-foreground">
+          <div className="text-4xl font-bold text-foreground">
             {Math.round(metrics.steps).toLocaleString()}
           </div>
           <div className="text-sm text-muted-foreground">Steps Today</div>

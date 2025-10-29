@@ -26,14 +26,14 @@ const PerformanceCharts = ({ userId }: { userId: string }) => {
       <h3 className="text-2xl font-bold">Performance Tracking</h3>
       
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="p-6 bg-card border-border">
+        <Card className="p-6 bg-card/80 backdrop-blur-xl border-border rounded-2xl">
           <h4 className="text-lg font-semibold mb-4 text-foreground">Heart Rate Trend</h4>
           <ResponsiveContainer width="100%" height={250}>
             <LineChart data={mockHeartRateData}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
               <XAxis dataKey="time" stroke="hsl(var(--muted-foreground))" />
               <YAxis stroke="hsl(var(--muted-foreground))" />
-              <Tooltip 
+              <Tooltip
                 contentStyle={{
                   backgroundColor: "hsl(var(--card))",
                   border: "1px solid hsl(var(--border))",
@@ -51,7 +51,7 @@ const PerformanceCharts = ({ userId }: { userId: string }) => {
           </ResponsiveContainer>
         </Card>
 
-        <Card className="p-6 bg-card border-border">
+        <Card className="p-6 bg-card/80 backdrop-blur-xl border-border rounded-2xl">
           <h4 className="text-lg font-semibold mb-4 text-foreground">Weekly Steps</h4>
           <ResponsiveContainer width="100%" height={250}>
             <BarChart data={mockStepsData}>
@@ -72,7 +72,7 @@ const PerformanceCharts = ({ userId }: { userId: string }) => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="p-6 bg-card border-border glow-blue">
+        <Card className="p-6 bg-card/80 backdrop-blur-xl border-border glow-blue rounded-2xl">
           <div className="text-sm text-muted-foreground mb-2">AI Insight</div>
           <div className="text-lg font-semibold text-foreground">Improve Consistency</div>
           <p className="text-sm text-muted-foreground mt-2">
@@ -80,7 +80,7 @@ const PerformanceCharts = ({ userId }: { userId: string }) => {
           </p>
         </Card>
 
-        <Card className="p-6 bg-card border-border glow-green">
+        <Card className="p-6 bg-card/80 backdrop-blur-xl border-border glow-green rounded-2xl">
           <div className="text-sm text-muted-foreground mb-2">AI Insight</div>
           <div className="text-lg font-semibold text-foreground">Optimal Heart Rate</div>
           <p className="text-sm text-muted-foreground mt-2">
@@ -88,7 +88,7 @@ const PerformanceCharts = ({ userId }: { userId: string }) => {
           </p>
         </Card>
 
-        <Card className="p-6 bg-card border-border glow-blue">
+        <Card className="p-6 bg-card/80 backdrop-blur-xl border-border glow-blue rounded-2xl">
           <div className="text-sm text-muted-foreground mb-2">AI Insight</div>
           <div className="text-lg font-semibold text-foreground">Hydration Reminder</div>
           <p className="text-sm text-muted-foreground mt-2">
