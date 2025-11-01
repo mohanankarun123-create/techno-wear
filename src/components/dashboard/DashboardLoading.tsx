@@ -1,3 +1,4 @@
+import React from "react";
 import { Heart, Bluetooth, Leaf } from "lucide-react";
 
 export const DashboardLoading = () => {
