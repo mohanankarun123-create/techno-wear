@@ -6,6 +6,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { z } from "zod";
+
+const authSchema = z.object({
+  email: z.string().trim().email("Invalid email address").max(255, "Email too long"),
+  password: z.string().min(6, "Password must be at least 6 characters").max(72, "Password too long"),
+  fullName: z.string().trim().min(1, "Name is required").max(100, "Name too long").optional()
+});
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -20,13 +27,19 @@ const Auth = () => {
     setIsLoading(true);
 
     try {
+      const validatedData = authSchema.parse({
+        email,
+        password,
+        fullName: isSignUp ? fullName : undefined
+      });
+
       if (isSignUp) {
         const { error } = await supabase.auth.signUp({
-          email,
-          password,
+          email: validatedData.email,
+          password: validatedData.password,
           options: {
             data: {
-              full_name: fullName,
+              full_name: validatedData.fullName,
             },
             emailRedirectTo: `${window.location.origin}/`,
           },
@@ -37,8 +50,8 @@ const Auth = () => {
         setIsSignUp(false);
       } else {
         const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
+          email: validatedData.email,
+          password: validatedData.password,
         });
         
         if (error) throw error;
@@ -46,7 +59,11 @@ const Auth = () => {
         navigate("/dashboard");
       }
     } catch (error: any) {
-      toast.error(error.message);
+      if (error instanceof z.ZodError) {
+        toast.error(error.errors[0].message);
+      } else {
+        toast.error(error.message);
+      }
     } finally {
       setIsLoading(false);
     }

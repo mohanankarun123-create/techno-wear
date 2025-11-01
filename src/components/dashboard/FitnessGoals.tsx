@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus, Target, Check } from "lucide-react";
 import { toast } from "sonner";
+import { z } from "zod";
 
 interface Goal {
   id: string;
@@ -13,6 +14,11 @@ interface Goal {
   current_value: number;
   is_completed: boolean;
 }
+
+const goalSchema = z.object({
+  title: z.string().trim().min(1, "Title is required").max(200, "Title must be less than 200 characters"),
+  target_value: z.number().int("Must be a whole number").positive("Must be greater than 0").max(1000000, "Value too large")
+});
 
 const FitnessGoals = ({ userId }: { userId: string }) => {
   const [goals, setGoals] = useState<Goal[]>([]);
@@ -66,27 +72,41 @@ const FitnessGoals = ({ userId }: { userId: string }) => {
   };
 
   const handleAddGoal = async () => {
-    if (!newGoalTitle || !newGoalTarget) {
-      toast.error("Please fill in all fields");
-      return;
-    }
+    try {
+      const targetValue = parseInt(newGoalTarget);
+      if (isNaN(targetValue)) {
+        toast.error("Please enter a valid number");
+        return;
+      }
 
-    const { error } = await supabase.from("fitness_goals").insert({
-      user_id: userId,
-      title: newGoalTitle,
-      target_value: parseInt(newGoalTarget),
-      current_value: 0,
-      goal_type: "custom",
-    });
+      const validatedData = goalSchema.parse({
+        title: newGoalTitle,
+        target_value: targetValue
+      });
 
-    if (error) {
-      toast.error("Failed to add goal");
-    } else {
-      toast.success("Goal added!");
-      setNewGoalTitle("");
-      setNewGoalTarget("");
-      setIsAdding(false);
-      fetchGoals();
+      const { error } = await supabase.from("fitness_goals").insert({
+        user_id: userId,
+        title: validatedData.title,
+        target_value: validatedData.target_value,
+        current_value: 0,
+        goal_type: "custom",
+      });
+
+      if (error) {
+        toast.error("Failed to add goal");
+      } else {
+        toast.success("Goal added!");
+        setNewGoalTitle("");
+        setNewGoalTarget("");
+        setIsAdding(false);
+        fetchGoals();
+      }
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        toast.error(error.errors[0].message);
+      } else {
+        toast.error("Invalid goal data");
+      }
     }
   };
 

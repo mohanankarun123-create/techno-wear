@@ -7,12 +7,20 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Bluetooth, QrCode, Loader2, Check } from "lucide-react";
+import { z } from "zod";
 
 interface AddGarmentDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   userId: string;
 }
+
+const garmentSchema = z.object({
+  name: z.string().trim().min(1, "Name is required").max(100, "Name must be less than 100 characters"),
+  type: z.enum(["shirt", "shorts", "jacket", "pants", "shoes", "other"], {
+    errorMap: () => ({ message: "Please select a garment type" })
+  })
+});
 
 const AddGarmentDialog = ({ open, onOpenChange, userId }: AddGarmentDialogProps) => {
   const [step, setStep] = useState<"method" | "pairing" | "success">("method");
@@ -36,26 +44,34 @@ const AddGarmentDialog = ({ open, onOpenChange, userId }: AddGarmentDialogProps)
   };
 
   const handleComplete = async () => {
-    if (!garmentName || !garmentType) {
-      toast.error("Please fill in garment details");
-      return;
-    }
+    try {
+      const validatedData = garmentSchema.parse({
+        name: garmentName,
+        type: garmentType
+      });
 
-    const { error } = await supabase.from("garments").insert({
-      user_id: userId,
-      name: garmentName,
-      type: garmentType,
-      is_paired: true,
-      bluetooth_id: pairingMethod === "bluetooth" ? `BT-${Date.now()}` : undefined,
-      qr_code: pairingMethod === "qr" ? `QR-${Date.now()}` : undefined,
-    });
+      const { error } = await supabase.from("garments").insert({
+        user_id: userId,
+        name: validatedData.name,
+        type: validatedData.type,
+        is_paired: true,
+        bluetooth_id: pairingMethod === "bluetooth" ? `BT-${Date.now()}` : undefined,
+        qr_code: pairingMethod === "qr" ? `QR-${Date.now()}` : undefined,
+      });
 
-    if (error) {
-      toast.error("Failed to add garment");
-    } else {
-      toast.success("Garment added successfully!");
-      onOpenChange(false);
-      resetDialog();
+      if (error) {
+        toast.error("Failed to add garment");
+      } else {
+        toast.success("Garment added successfully!");
+        onOpenChange(false);
+        resetDialog();
+      }
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        toast.error(error.errors[0].message);
+      } else {
+        toast.error("Invalid garment details");
+      }
     }
   };
 

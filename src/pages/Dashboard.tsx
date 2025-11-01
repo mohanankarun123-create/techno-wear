@@ -20,7 +20,9 @@ const Dashboard = () => {
   const [activeTab, setActiveTab] = useState<TabType>("health");
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!session) {
         navigate("/auth");
       } else {
@@ -28,9 +30,7 @@ const Dashboard = () => {
       }
     });
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) {
         navigate("/auth");
       } else {
