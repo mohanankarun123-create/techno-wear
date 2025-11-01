@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { z } from "zod";
+import { OTPVerification } from "@/components/auth/OTPVerification";
 
 const authSchema = z.object({
   email: z.string().trim().email("Invalid email address").max(255, "Email too long"),
@@ -21,6 +22,8 @@ const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  const [showOTP, setShowOTP] = useState(false);
+  const [pendingEmail, setPendingEmail] = useState("");
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,14 +44,16 @@ const Auth = () => {
             data: {
               full_name: validatedData.fullName,
             },
-            emailRedirectTo: `${window.location.origin}/`,
+            emailRedirectTo: `${window.location.origin}/dashboard`,
           },
         });
         
         if (error) throw error;
-        toast.success("Account created! Please check your email to verify.");
-        setIsSignUp(false);
+        setPendingEmail(validatedData.email);
+        setShowOTP(true);
+        toast.success("Check your email for the verification code!");
       } else {
+        setIsLoading(true);
         const { error } = await supabase.auth.signInWithPassword({
           email: validatedData.email,
           password: validatedData.password,
@@ -68,6 +73,56 @@ const Auth = () => {
       setIsLoading(false);
     }
   };
+
+  const handleGoogleSignIn = async () => {
+    setIsLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/dashboard`,
+        },
+      });
+      if (error) throw error;
+      toast.info("Connecting securely...");
+    } catch (error: any) {
+      toast.error(error.message);
+      setIsLoading(false);
+    }
+  };
+
+  const handleAppleSignIn = async () => {
+    setIsLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'apple',
+        options: {
+          redirectTo: `${window.location.origin}/dashboard`,
+        },
+      });
+      if (error) throw error;
+      toast.info("Connecting securely...");
+    } catch (error: any) {
+      toast.error(error.message);
+      setIsLoading(false);
+    }
+  };
+
+  if (showOTP) {
+    return (
+      <OTPVerification
+        email={pendingEmail}
+        onVerified={() => {
+          setShowOTP(false);
+          navigate("/dashboard");
+        }}
+        onCancel={() => {
+          setShowOTP(false);
+          setPendingEmail("");
+        }}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
@@ -156,11 +211,21 @@ const Auth = () => {
           </div>
 
           <div className="flex gap-2">
-            <Button variant="outline" className="flex-1 border-border">
-              Continue with Apple
+            <Button 
+              variant="outline" 
+              className="flex-1 border-border hover:bg-muted rounded-2xl"
+              onClick={handleAppleSignIn}
+              disabled={isLoading}
+            >
+              {isLoading ? "Connecting securely..." : "Continue with Apple"}
             </Button>
-            <Button variant="outline" className="flex-1 border-border">
-              Continue with Google
+            <Button 
+              variant="outline" 
+              className="flex-1 border-border hover:bg-muted rounded-2xl"
+              onClick={handleGoogleSignIn}
+              disabled={isLoading}
+            >
+              {isLoading ? "Connecting securely..." : "Continue with Google"}
             </Button>
           </div>
         </div>

@@ -1,11 +1,13 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Activity, Heart, Leaf } from "lucide-react";
+import { LearnMoreDialog } from "@/components/home/LearnMoreDialog";
 
 const Index = () => {
   const navigate = useNavigate();
+  const [showLearnMore, setShowLearnMore] = useState(false);
 
   useEffect(() => {
     const {
@@ -71,6 +73,7 @@ const Index = () => {
                 size="lg"
                 variant="outline"
                 className="border-secondary text-secondary hover:bg-secondary hover:text-secondary-foreground text-lg px-8"
+                onClick={() => setShowLearnMore(true)}
               >
                 Learn More
               </Button>
@@ -113,6 +116,8 @@ const Index = () => {
           </div>
         </main>
       </div>
+      
+      <LearnMoreDialog open={showLearnMore} onOpenChange={setShowLearnMore} />
     </div>
   );
 };

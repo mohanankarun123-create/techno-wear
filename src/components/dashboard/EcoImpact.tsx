@@ -53,12 +53,15 @@ const EcoImpact = ({ userId }: { userId: string }) => {
               </div>
               <div>
                 <div className="text-5xl font-bold text-foreground">{currentImpact}g</div>
-                <div className="text-sm text-muted-foreground">CO₂ absorbed this month</div>
+                <div className="text-sm text-muted-foreground">CO<sub>2</sub> absorbed this month</div>
               </div>
             </div>
             <div className="p-4 bg-secondary/10 rounded-xl border border-secondary/20">
+              <p className="text-sm text-foreground font-semibold mb-1">
+                You've absorbed 12–15 g CO<sub>2</sub> this month
+              </p>
               <p className="text-sm text-foreground">
-                That's like planting <span className="font-bold text-secondary">one tree 🌳</span>
+                That's equivalent to planting <span className="font-bold text-secondary">1 tree 🌳</span>
               </p>
               <p className="text-xs text-muted-foreground mt-2">
                 Keep using your TechnoWear garments to reduce your carbon footprint!
@@ -68,7 +71,7 @@ const EcoImpact = ({ userId }: { userId: string }) => {
         </Card>
 
         <Card className="p-6 bg-card/80 backdrop-blur-xl border-border rounded-2xl">
-          <h4 className="text-lg font-semibold mb-4 text-foreground">Monthly CO₂ Absorption Trend</h4>
+          <h4 className="text-lg font-semibold mb-4 text-foreground">Monthly CO<sub>2</sub> Absorption Trend</h4>
           <ResponsiveContainer width="100%" height={200}>
             <LineChart data={mockMonthlyData}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />

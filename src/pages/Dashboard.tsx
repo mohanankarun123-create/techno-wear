@@ -4,12 +4,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { LogOut, Plus, Heart, TrendingUp, Leaf } from "lucide-react";
+import { LogOut, Plus, Heart, TrendingUp, Leaf, Shirt } from "lucide-react";
 import HealthMetricsGrid from "@/components/dashboard/HealthMetricsGrid";
 import PerformanceCharts from "@/components/dashboard/PerformanceCharts";
 import FitnessGoals from "@/components/dashboard/FitnessGoals";
 import EcoImpact from "@/components/dashboard/EcoImpact";
 import AddGarmentDialog from "@/components/dashboard/AddGarmentDialog";
+import { DashboardLoading } from "@/components/dashboard/DashboardLoading";
 
 type TabType = "health" | "trends" | "eco";
 
@@ -18,6 +19,8 @@ const Dashboard = () => {
   const [user, setUser] = useState<User | null>(null);
   const [isAddGarmentOpen, setIsAddGarmentOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>("health");
+  const [garmentCount, setGarmentCount] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const {
@@ -35,11 +38,22 @@ const Dashboard = () => {
         navigate("/auth");
       } else {
         setUser(session.user);
+        fetchGarmentCount(session.user.id);
+        setTimeout(() => setIsLoading(false), 2000);
       }
     });
 
     return () => subscription.unsubscribe();
   }, [navigate]);
+
+  const fetchGarmentCount = async (userId: string) => {
+    const { count } = await supabase
+      .from("garments")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", userId);
+    
+    setGarmentCount(count || 0);
+  };
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -48,6 +62,10 @@ const Dashboard = () => {
   };
 
   if (!user) return null;
+
+  if (isLoading) {
+    return <DashboardLoading />;
+  }
 
   const tabs = [
     { id: "health" as TabType, icon: Heart, label: "Health", color: "primary" },
@@ -62,21 +80,26 @@ const Dashboard = () => {
           <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
             TechnoWear
           </h1>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 px-4 py-2 bg-primary/10 border border-primary/30 rounded-2xl glow-blue">
+              <Shirt className="h-5 w-5 text-primary" />
+              <span className="font-semibold text-foreground">{garmentCount}</span>
+              <span className="text-sm text-muted-foreground">Connected</span>
+            </div>
             <Button
               onClick={() => setIsAddGarmentOpen(true)}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground glow-blue"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground glow-blue rounded-2xl"
             >
               <Plus className="h-4 w-4 mr-2" />
               Add Garment
             </Button>
             <Button
-              variant="ghost"
-              size="icon"
+              variant="outline"
               onClick={handleSignOut}
-              className="text-muted-foreground hover:text-foreground"
+              className="border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground rounded-2xl"
             >
-              <LogOut className="h-5 w-5" />
+              <LogOut className="h-4 w-4 mr-2" />
+              Sign Out
             </Button>
           </div>
         </div>
@@ -154,7 +177,10 @@ const Dashboard = () => {
 
       <AddGarmentDialog 
         open={isAddGarmentOpen} 
-        onOpenChange={setIsAddGarmentOpen}
+        onOpenChange={(open) => {
+          setIsAddGarmentOpen(open);
+          if (!open) fetchGarmentCount(user.id);
+        }}
         userId={user.id}
       />
     </div>
