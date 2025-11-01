@@ -19,6 +19,7 @@ const Auth = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
+  const [useOTP, setUseOTP] = useState(true); // Default to OTP-based auth
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
@@ -30,38 +31,57 @@ const Auth = () => {
     setIsLoading(true);
 
     try {
-      const validatedData = authSchema.parse({
-        email,
-        password,
-        fullName: isSignUp ? fullName : undefined
-      });
-
-      if (isSignUp) {
-        const { error } = await supabase.auth.signUp({
-          email: validatedData.email,
-          password: validatedData.password,
+      // For OTP-based authentication (sign up and sign in)
+      if (useOTP) {
+        const validatedEmail = z.string().email().parse(email.trim());
+        
+        const { error } = await supabase.auth.signInWithOtp({
+          email: validatedEmail,
           options: {
-            data: {
-              full_name: validatedData.fullName,
-            },
-            emailRedirectTo: `${window.location.origin}/dashboard`,
+            data: isSignUp ? {
+              full_name: fullName.trim(),
+            } : undefined,
           },
         });
         
         if (error) throw error;
-        setPendingEmail(validatedData.email);
+        setPendingEmail(validatedEmail);
         setShowOTP(true);
-        toast.success("Check your email for the verification code!");
-      } else {
-        setIsLoading(true);
-        const { error } = await supabase.auth.signInWithPassword({
-          email: validatedData.email,
-          password: validatedData.password,
+        toast.success("Check your email for the 6-digit verification code!");
+      } 
+      // For password-based sign in (fallback)
+      else {
+        const validatedData = authSchema.parse({
+          email,
+          password,
+          fullName: isSignUp ? fullName : undefined
         });
-        
-        if (error) throw error;
-        toast.success("Welcome back!");
-        navigate("/dashboard");
+
+        if (isSignUp) {
+          const { error } = await supabase.auth.signUp({
+            email: validatedData.email,
+            password: validatedData.password,
+            options: {
+              data: {
+                full_name: validatedData.fullName,
+              },
+              emailRedirectTo: `${window.location.origin}/dashboard`,
+            },
+          });
+          
+          if (error) throw error;
+          toast.success("Account created! Please check your email.");
+          setIsSignUp(false);
+        } else {
+          const { error } = await supabase.auth.signInWithPassword({
+            email: validatedData.email,
+            password: validatedData.password,
+          });
+          
+          if (error) throw error;
+          toast.success("Welcome back!");
+          navigate("/dashboard");
+        }
       }
     } catch (error: any) {
       if (error instanceof z.ZodError) {
@@ -144,7 +164,7 @@ const Auth = () => {
 
           <div className="bg-card rounded-2xl p-6 border border-border glow-blue">
             <form onSubmit={handleAuth} className="space-y-4">
-              {isSignUp && (
+              {isSignUp && useOTP && (
                 <div className="space-y-2">
                   <Label htmlFor="fullName">Full Name</Label>
                   <Input
@@ -152,7 +172,7 @@ const Auth = () => {
                     type="text"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    required={isSignUp}
+                    required={isSignUp && useOTP}
                     className="bg-muted border-border"
                   />
                 </div>
@@ -170,17 +190,19 @@ const Auth = () => {
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="bg-muted border-border"
-                />
-              </div>
+              {!useOTP && (
+                <div className="space-y-2">
+                  <Label htmlFor="password">Password</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required={!useOTP}
+                    className="bg-muted border-border"
+                  />
+                </div>
+              )}
 
               <Button
                 type="submit"
@@ -188,7 +210,12 @@ const Auth = () => {
                 disabled={isLoading}
               >
                 {isLoading ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    Sending code...
+                  </>
+                ) : useOTP ? (
+                  "Send Verification Code"
                 ) : isSignUp ? (
                   "Sign Up"
                 ) : (
@@ -197,15 +224,29 @@ const Auth = () => {
               </Button>
             </form>
 
-            <div className="mt-4">
+            <div className="mt-4 space-y-2">
+              {!useOTP && (
+                <Button
+                  variant="ghost"
+                  className="w-full text-muted-foreground hover:text-foreground"
+                  onClick={() => setIsSignUp(!isSignUp)}
+                >
+                  {isSignUp
+                    ? "Already have an account? Sign In"
+                    : "Don't have an account? Sign Up"}
+                </Button>
+              )}
               <Button
                 variant="ghost"
-                className="w-full text-muted-foreground hover:text-foreground"
-                onClick={() => setIsSignUp(!isSignUp)}
+                className="w-full text-xs text-muted-foreground hover:text-foreground"
+                onClick={() => {
+                  setUseOTP(!useOTP);
+                  setPassword("");
+                }}
               >
-                {isSignUp
-                  ? "Already have an account? Sign In"
-                  : "Don't have an account? Sign Up"}
+                {useOTP
+                  ? "Use password instead"
+                  : "Use email verification code instead"}
               </Button>
             </div>
           </div>

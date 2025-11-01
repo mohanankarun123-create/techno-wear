@@ -9,11 +9,23 @@ interface OTPVerificationProps {
   email: string;
   onVerified: () => void;
   onCancel: () => void;
+  onResend?: () => void;
 }
 
-export const OTPVerification = ({ email, onVerified, onCancel }: OTPVerificationProps) => {
+export const OTPVerification = ({ email, onVerified, onCancel, onResend }: OTPVerificationProps) => {
   const [otp, setOtp] = useState("");
   const [isVerifying, setIsVerifying] = useState(false);
+  const [canResend, setCanResend] = useState(false);
+  const [countdown, setCountdown] = useState(60);
+
+  React.useEffect(() => {
+    if (countdown > 0) {
+      const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
+      return () => clearTimeout(timer);
+    } else {
+      setCanResend(true);
+    }
+  }, [countdown]);
 
   const handleVerify = async () => {
     if (otp.length !== 6) {
@@ -37,6 +49,20 @@ export const OTPVerification = ({ email, onVerified, onCancel }: OTPVerification
       toast.error(error.message || "Invalid verification code");
     } finally {
       setIsVerifying(false);
+    }
+  };
+
+  const handleResend = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOtp({ email });
+      if (error) throw error;
+      
+      toast.success("New code sent to your email!");
+      setCountdown(60);
+      setCanResend(false);
+      setOtp("");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to resend code");
     }
   };
 
@@ -74,6 +100,20 @@ export const OTPVerification = ({ email, onVerified, onCancel }: OTPVerification
                     <InputOTPSlot index={5} className="w-12 h-14 text-2xl bg-muted border-border rounded-xl glow-blue" />
                   </InputOTPGroup>
                 </InputOTP>
+              </div>
+
+              <div className="text-center text-sm text-muted-foreground mb-4">
+                {canResend ? (
+                  <Button
+                    variant="link"
+                    onClick={handleResend}
+                    className="text-primary hover:text-primary/80"
+                  >
+                    Didn't receive the code? Resend
+                  </Button>
+                ) : (
+                  <p>Resend code in {countdown}s</p>
+                )}
               </div>
 
               <Button
