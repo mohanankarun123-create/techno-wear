@@ -50,6 +50,7 @@ const Auth = () => {
         const { error } = await supabase.auth.signInWithOtp({
           email: validatedEmail,
           options: {
+            shouldCreateUser: true,
             data: {
               full_name: validatedName,
             },
