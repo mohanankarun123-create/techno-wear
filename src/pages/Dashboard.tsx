@@ -11,6 +11,7 @@ import FitnessGoals from "@/components/dashboard/FitnessGoals";
 import EcoImpact from "@/components/dashboard/EcoImpact";
 import AddGarmentDialog from "@/components/dashboard/AddGarmentDialog";
 import { DashboardLoading } from "@/components/dashboard/DashboardLoading";
+import GarmentList from "@/components/dashboard/GarmentList";
 
 type TabType = "health" | "trends" | "eco";
 
@@ -45,6 +46,31 @@ const Dashboard = () => {
 
     return () => subscription.unsubscribe();
   }, [navigate]);
+
+  useEffect(() => {
+    if (!user) return;
+
+    // Subscribe to real-time garment changes
+    const channel = supabase
+      .channel('garment-count-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'garments',
+          filter: `user_id=eq.${user.id}`
+        },
+        () => {
+          fetchGarmentCount(user.id);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
 
   const fetchGarmentCount = async (userId: string) => {
     const { count } = await supabase
@@ -158,6 +184,11 @@ const Dashboard = () => {
               <h2 className="text-3xl font-bold">Your Health at a Glance</h2>
               <HealthMetricsGrid userId={user.id} />
               <FitnessGoals userId={user.id} />
+              
+              <div className="mt-8">
+                <h2 className="text-3xl font-bold mb-6">Your Connected Garments</h2>
+                <GarmentList userId={user.id} onGarmentChange={() => fetchGarmentCount(user.id)} />
+              </div>
             </div>
           )}
 

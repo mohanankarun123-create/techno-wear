@@ -19,7 +19,7 @@ const Auth = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
-  const [useOTP, setUseOTP] = useState(true); // Default to OTP-based auth
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
@@ -31,16 +31,28 @@ const Auth = () => {
     setIsLoading(true);
 
     try {
-      // For OTP-based authentication (sign up and sign in)
-      if (useOTP) {
+      if (isForgotPassword) {
+        // Handle password reset
         const validatedEmail = z.string().email().parse(email.trim());
+        const { error } = await supabase.auth.resetPasswordForEmail(validatedEmail, {
+          redirectTo: `${window.location.origin}/auth`,
+        });
+        
+        if (error) throw error;
+        toast.success("Password reset email sent! Check your inbox.");
+        setIsForgotPassword(false);
+        setEmail("");
+      } else if (isSignUp) {
+        // Sign-up flow: Send OTP for email verification
+        const validatedEmail = z.string().email().parse(email.trim());
+        const validatedName = z.string().trim().min(1).parse(fullName);
         
         const { error } = await supabase.auth.signInWithOtp({
           email: validatedEmail,
           options: {
-            data: isSignUp ? {
-              full_name: fullName.trim(),
-            } : undefined,
+            data: {
+              full_name: validatedName,
+            },
           },
         });
         
@@ -48,40 +60,21 @@ const Auth = () => {
         setPendingEmail(validatedEmail);
         setShowOTP(true);
         toast.success("Check your email for the 6-digit verification code!");
-      } 
-      // For password-based sign in (fallback)
-      else {
+      } else {
+        // Sign-in flow: Email and password only
         const validatedData = authSchema.parse({
           email,
           password,
-          fullName: isSignUp ? fullName : undefined
         });
 
-        if (isSignUp) {
-          const { error } = await supabase.auth.signUp({
-            email: validatedData.email,
-            password: validatedData.password,
-            options: {
-              data: {
-                full_name: validatedData.fullName,
-              },
-              emailRedirectTo: `${window.location.origin}/dashboard`,
-            },
-          });
-          
-          if (error) throw error;
-          toast.success("Account created! Please check your email.");
-          setIsSignUp(false);
-        } else {
-          const { error } = await supabase.auth.signInWithPassword({
-            email: validatedData.email,
-            password: validatedData.password,
-          });
-          
-          if (error) throw error;
-          toast.success("Welcome back!");
-          navigate("/dashboard");
-        }
+        const { error } = await supabase.auth.signInWithPassword({
+          email: validatedData.email,
+          password: validatedData.password,
+        });
+        
+        if (error) throw error;
+        toast.success("Welcome back!");
+        navigate("/dashboard");
       }
     } catch (error: any) {
       if (error instanceof z.ZodError) {
@@ -104,9 +97,10 @@ const Auth = () => {
         },
       });
       if (error) throw error;
-      toast.info("Connecting securely...");
+      toast.info("Connecting securely with Google...");
     } catch (error: any) {
-      toast.error(error.message);
+      toast.error("Google sign-in failed. Please use email sign-in instead.");
+      console.error("Google OAuth error:", error);
       setIsLoading(false);
     }
   };
@@ -121,9 +115,10 @@ const Auth = () => {
         },
       });
       if (error) throw error;
-      toast.info("Connecting securely...");
+      toast.info("Connecting securely with Apple...");
     } catch (error: any) {
-      toast.error(error.message);
+      toast.error("Apple sign-in failed. Please use email sign-in instead.");
+      console.error("Apple OAuth error:", error);
       setIsLoading(false);
     }
   };
@@ -152,19 +147,21 @@ const Auth = () => {
         <div className="space-y-6">
           <div className="text-center space-y-2">
             <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              Welcome to TechnoWear
+              {isForgotPassword ? "Reset Password" : isSignUp ? "Create Account" : "Welcome Back"}
             </h1>
             <p className="text-muted-foreground">
-              Connect to the Future of Fitness
+              {isForgotPassword ? "Enter your email to receive reset instructions" : "Connect to the Future of Fitness"}
             </p>
-            <p className="text-sm text-muted-foreground">
-              Smart clothing that cares for you — and the planet.
-            </p>
+            {!isForgotPassword && (
+              <p className="text-sm text-muted-foreground">
+                Smart clothing that cares for you — and the planet.
+              </p>
+            )}
           </div>
 
           <div className="bg-card rounded-2xl p-6 border border-border glow-blue">
             <form onSubmit={handleAuth} className="space-y-4">
-              {isSignUp && useOTP && (
+              {isSignUp && (
                 <div className="space-y-2">
                   <Label htmlFor="fullName">Full Name</Label>
                   <Input
@@ -172,7 +169,7 @@ const Auth = () => {
                     type="text"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    required={isSignUp && useOTP}
+                    required={isSignUp}
                     className="bg-muted border-border"
                   />
                 </div>
@@ -190,7 +187,7 @@ const Auth = () => {
                 />
               </div>
 
-              {!useOTP && (
+              {!isSignUp && !isForgotPassword && (
                 <div className="space-y-2">
                   <Label htmlFor="password">Password</Label>
                   <Input
@@ -198,7 +195,7 @@ const Auth = () => {
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    required={!useOTP}
+                    required={!isSignUp && !isForgotPassword}
                     className="bg-muted border-border"
                   />
                 </div>
@@ -212,12 +209,12 @@ const Auth = () => {
                 {isLoading ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    Sending code...
+                    {isForgotPassword ? "Sending reset email..." : isSignUp ? "Sending verification code..." : "Signing in..."}
                   </>
-                ) : useOTP ? (
-                  "Send Verification Code"
+                ) : isForgotPassword ? (
+                  "Send Reset Email"
                 ) : isSignUp ? (
-                  "Sign Up"
+                  "Send Verification Code"
                 ) : (
                   "Sign In"
                 )}
@@ -225,50 +222,56 @@ const Auth = () => {
             </form>
 
             <div className="mt-4 space-y-2">
-              {!useOTP && (
+              {!isForgotPassword && (
                 <Button
                   variant="ghost"
                   className="w-full text-muted-foreground hover:text-foreground"
-                  onClick={() => setIsSignUp(!isSignUp)}
+                  onClick={() => {
+                    setIsSignUp(!isSignUp);
+                    setPassword("");
+                    setFullName("");
+                  }}
                 >
                   {isSignUp
                     ? "Already have an account? Sign In"
                     : "Don't have an account? Sign Up"}
                 </Button>
               )}
-              <Button
-                variant="ghost"
-                className="w-full text-xs text-muted-foreground hover:text-foreground"
-                onClick={() => {
-                  setUseOTP(!useOTP);
-                  setPassword("");
-                }}
-              >
-                {useOTP
-                  ? "Use password instead"
-                  : "Use email verification code instead"}
-              </Button>
+              {!isSignUp && (
+                <Button
+                  variant="ghost"
+                  className="w-full text-xs text-muted-foreground hover:text-foreground"
+                  onClick={() => {
+                    setIsForgotPassword(!isForgotPassword);
+                    setPassword("");
+                  }}
+                >
+                  {isForgotPassword ? "Back to Sign In" : "Forgot Password?"}
+                </Button>
+              )}
             </div>
           </div>
 
-          <div className="flex gap-2">
-            <Button 
-              variant="outline" 
-              className="flex-1 border-border hover:bg-muted rounded-2xl"
-              onClick={handleAppleSignIn}
-              disabled={isLoading}
-            >
-              {isLoading ? "Connecting securely..." : "Continue with Apple"}
-            </Button>
-            <Button 
-              variant="outline" 
-              className="flex-1 border-border hover:bg-muted rounded-2xl"
-              onClick={handleGoogleSignIn}
-              disabled={isLoading}
-            >
-              {isLoading ? "Connecting securely..." : "Continue with Google"}
-            </Button>
-          </div>
+          {!isForgotPassword && (
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                className="flex-1 border-border hover:bg-muted rounded-2xl"
+                onClick={handleAppleSignIn}
+                disabled={isLoading}
+              >
+                Continue with Apple
+              </Button>
+              <Button 
+                variant="outline" 
+                className="flex-1 border-border hover:bg-muted rounded-2xl"
+                onClick={handleGoogleSignIn}
+                disabled={isLoading}
+              >
+                Continue with Google
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     </div>
